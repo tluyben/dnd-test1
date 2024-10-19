@@ -17,7 +17,7 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
   isSelected,
   onSelect,
 }) => {
-  const { id, type, x, y, width, height, properties } = data;
+  const { id, type, x, y, width, height, properties, events } = data;
   const { updateItem, deleteItem } = useCanvasItems();
   const [position, setPosition] = useState({ x, y });
   const [size, setSize] = useState({ width, height });
@@ -39,11 +39,30 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
     setSize({ width: data.width, height: data.height });
   }, [data.x, data.y, data.width, data.height]);
 
+  // Function to execute event code
+  const executeEvent = (eventName: string) => {
+    if (events && events[eventName]) {
+      try {
+        // eslint-disable-next-line no-eval
+        eval(events[eventName]);
+      } catch (error) {
+        console.error(
+          `Error executing ${eventName} for component ${id}:`,
+          error
+        );
+      }
+    }
+  };
+
   const renderComponent = () => {
     switch (type) {
       case "button":
         return (
-          <Button className="w-full h-full" variant={properties.color}>
+          <Button
+            className="w-full h-full"
+            variant={properties.color}
+            onClick={() => executeEvent("onClick")}
+          >
             {properties.text}
           </Button>
         );
@@ -54,11 +73,16 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
             value={properties.value}
             className="w-full h-full"
             readOnly
+            onFocus={() => executeEvent("onFocus")}
+            onChange={() => executeEvent("onChange")}
           />
         );
       case "label":
         return (
-          <Label className="w-full h-full flex items-center justify-center">
+          <Label
+            className="w-full h-full flex items-center justify-center cursor-pointer"
+            onClick={() => executeEvent("onClick")}
+          >
             {properties.text}
           </Label>
         );

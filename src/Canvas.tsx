@@ -50,6 +50,7 @@ const Canvas: React.FC<CanvasProps> = ({
       width: 120,
       height: 50,
       properties: getDefaultProperties(type),
+      events: {},
     };
     addItem(newItem);
   };
