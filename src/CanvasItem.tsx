@@ -1,42 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Label } from "./components/ui/label";
 import { X } from "lucide-react";
+import { useCanvasItems } from "./useCanvasItems";
 
 interface CanvasItemProps {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  onDelete: (id: string) => void;
+  data: any;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
 }
 
 const CanvasItem: React.FC<CanvasItemProps> = ({
-  id,
-  type,
-  x,
-  y,
-  width,
-  height,
-  onDelete,
+  data,
+  isSelected,
+  onSelect,
 }) => {
+  const { id, type, x, y, width, height, properties } = data;
+  const { updateItem, deleteItem } = useCanvasItems();
   const [position, setPosition] = useState({ x, y });
   const [size, setSize] = useState({ width, height });
+
+  useEffect(() => {
+    // Update position and size in the shared state
+    updateItem(id, {
+      x: position.x,
+      y: position.y,
+      width: size.width,
+      height: size.height,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position, size]);
+
+  useEffect(() => {
+    // Update properties if changed from properties pane
+    setPosition({ x: data.x, y: data.y });
+    setSize({ width: data.width, height: data.height });
+  }, [data.x, data.y, data.width, data.height]);
 
   const renderComponent = () => {
     switch (type) {
       case "button":
-        return <Button className="w-full h-full">Button</Button>;
+        return (
+          <Button className="w-full h-full" variant={properties.color}>
+            {properties.text}
+          </Button>
+        );
       case "input":
-        return <Input placeholder="Text Input" className="w-full h-full" />;
+        return (
+          <Input
+            placeholder={properties.placeholder}
+            value={properties.value}
+            className="w-full h-full"
+            readOnly
+          />
+        );
       case "label":
         return (
           <Label className="w-full h-full flex items-center justify-center">
-            Label
+            {properties.text}
           </Label>
         );
       default:
@@ -59,12 +82,21 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
         });
         setPosition(position);
       }}
-      className="absolute border border-gray-300 bg-white shadow-md"
+      className={`absolute border ${
+        isSelected ? "border-blue-500" : "border-gray-300"
+      } bg-white shadow-md`}
+      onClick={(e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        onSelect(id);
+      }}
     >
       <div className="relative w-full h-full">
         {renderComponent()}
         <button
-          onClick={() => onDelete(id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteItem(id);
+          }}
           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
         >
           <X size={12} />

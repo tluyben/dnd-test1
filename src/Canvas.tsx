@@ -1,19 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDrop } from "react-dnd";
 import { ItemTypes } from "./ItemTypes";
 import CanvasItem from "./CanvasItem";
+import { useCanvasItems } from "./useCanvasItems";
 
-interface CanvasItemData {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+interface CanvasProps {
+  selectedComponentId: string | null;
+  setSelectedComponentId: (id: string | null) => void;
 }
 
-const Canvas: React.FC = () => {
-  const [items, setItems] = useState<CanvasItemData[]>([]);
+const Canvas: React.FC<CanvasProps> = ({
+  selectedComponentId,
+  setSelectedComponentId,
+}) => {
+  const { items, addItem } = useCanvasItems();
 
   const [, drop] = useDrop({
     accept: ItemTypes.COMPONENT,
@@ -25,26 +25,36 @@ const Canvas: React.FC = () => {
           const canvasRect = canvas.getBoundingClientRect();
           const x = offset.x - canvasRect.left;
           const y = offset.y - canvasRect.top;
-          addItem(item.type, x, y);
+          handleAddItem(item.type, x, y);
         }
       }
     },
   });
 
-  const addItem = (type: string, x: number, y: number) => {
-    const newItem: CanvasItemData = {
+  const handleAddItem = (type: string, x: number, y: number) => {
+    const newItem = {
       id: `${type}-${Date.now()}`,
       type,
       x,
       y,
       width: 120,
       height: 50,
+      properties: getDefaultProperties(type),
     };
-    setItems((prevItems) => [...prevItems, newItem]);
+    addItem(newItem);
   };
 
-  const handleDelete = (id: string) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const getDefaultProperties = (type: string) => {
+    switch (type) {
+      case "button":
+        return { text: "Button", color: "default" };
+      case "input":
+        return { value: "", placeholder: "Text Input" };
+      case "label":
+        return { text: "Label" };
+      default:
+        return {};
+    }
   };
 
   return (
@@ -54,7 +64,12 @@ const Canvas: React.FC = () => {
       className="flex-1 relative bg-gray-50 overflow-auto"
     >
       {items.map((item) => (
-        <CanvasItem key={item.id} {...item} onDelete={handleDelete} />
+        <CanvasItem
+          key={item.id}
+          data={item}
+          isSelected={selectedComponentId === item.id}
+          onSelect={setSelectedComponentId}
+        />
       ))}
     </div>
   );
