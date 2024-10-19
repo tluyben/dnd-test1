@@ -18,13 +18,23 @@ const Canvas: React.FC<CanvasProps> = ({
   const [, drop] = useDrop({
     accept: ItemTypes.COMPONENT,
     drop: (item: any, monitor) => {
-      const offset = monitor.getClientOffset();
-      if (offset) {
+      const clientOffset = monitor.getClientOffset();
+      const initialClientOffset = monitor.getInitialClientOffset();
+      const initialSourceClientOffset = monitor.getInitialSourceClientOffset();
+
+      if (clientOffset && initialClientOffset && initialSourceClientOffset) {
         const canvas = document.getElementById("canvas");
         if (canvas) {
           const canvasRect = canvas.getBoundingClientRect();
-          const x = offset.x - canvasRect.left;
-          const y = offset.y - canvasRect.top;
+
+          // Calculate the offset within the component where the drag started
+          const offsetX = initialClientOffset.x - initialSourceClientOffset.x;
+          const offsetY = initialClientOffset.y - initialSourceClientOffset.y;
+
+          // Adjust the drop position by subtracting the initial offset
+          const x = clientOffset.x - canvasRect.left - offsetX;
+          const y = clientOffset.y - canvasRect.top - offsetY;
+
           handleAddItem(item.type, x, y);
         }
       }
