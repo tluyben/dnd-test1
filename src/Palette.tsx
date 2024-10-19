@@ -1,14 +1,46 @@
 import React from "react";
 import { useDrag } from "react-dnd";
 import { ItemTypes } from "./ItemTypes";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { Label } from "./components/ui/label";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "./components/ui/accordion";
 
-const components = [
-  { type: "button", label: "Button" },
-  { type: "input", label: "Text Input" },
-  { type: "label", label: "Label" },
+const componentGroups = [
+  {
+    title: "Basic Controls",
+    components: [
+      { type: "button", label: "Button" },
+      { type: "input", label: "Text Input" },
+      { type: "label", label: "Label" },
+    ],
+  },
+  {
+    title: "Containers",
+    components: [
+      { type: "button", label: "Button" },
+      { type: "input", label: "Text Input" },
+      { type: "label", label: "Label" },
+    ],
+  },
+  {
+    title: "Advanced Controls",
+    components: [
+      { type: "button", label: "Button" },
+      { type: "input", label: "Text Input" },
+      { type: "label", label: "Label" },
+    ],
+  },
+  {
+    title: "Form Elements",
+    components: [
+      { type: "button", label: "Button" },
+      { type: "input", label: "Text Input" },
+      { type: "label", label: "Label" },
+    ],
+  },
 ];
 
 interface PaletteItemProps {
@@ -40,9 +72,24 @@ const Palette: React.FC = () => {
   return (
     <div className="w-64 p-4 bg-gray-100 overflow-auto">
       <h3 className="text-lg font-semibold mb-4">Palette</h3>
-      {components.map((componentData) => (
-        <PaletteItem key={componentData.type} componentData={componentData} />
-      ))}
+      <Accordion
+        type="multiple"
+        defaultValue={componentGroups.map((group) => group.title)}
+      >
+        {componentGroups.map((group) => (
+          <AccordionItem key={group.title} value={group.title}>
+            <AccordionTrigger>{group.title}</AccordionTrigger>
+            <AccordionContent>
+              {group.components.map((componentData) => (
+                <PaletteItem
+                  key={componentData.type + componentData.label + group.title}
+                  componentData={componentData}
+                />
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 };
